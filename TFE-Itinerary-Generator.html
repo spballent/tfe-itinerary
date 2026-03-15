@@ -269,18 +269,26 @@ async function loadFromSharePoint() {
     const siteData = await siteRes.json();
     if (!siteData.id) throw new Error('Could not access SharePoint site.');
     const siteId = siteData.id;
-    const filter = encodeURIComponent(`fields/${FIELDS.expId} eq '${expId}'`);
     const itemsRes = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${LIST_ID}/items?$expand=fields&$filter=${filter}`,
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${LIST_ID}/items?$expand=fields&$top=500`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     const itemsData = await itemsRes.json();
     if (!itemsData.value || itemsData.value.length === 0) {
       status.className = 'status error';
+      status.textContent = 'Could not load SharePoint data.';
+      return;
+    }
+    const match = itemsData.value.find(item => {
+      const f = item.fields;
+      return f[FIELDS.expId] && f[FIELDS.expId].trim().toLowerCase() === expId.trim().toLowerCase();
+    });
+    if (!match) {
+      status.className = 'status error';
       status.textContent = `"${expId}" not found in SharePoint.`;
       return;
     }
-    const f = itemsData.value[0].fields;
+    const f = match.fields;
     document.getElementById('f-expid').value = f[FIELDS.expId] || expId;
     document.getElementById('f-name').value = f[FIELDS.name] || '';
     document.getElementById('f-state').value = f[FIELDS.state] || '';
