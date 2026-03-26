@@ -125,7 +125,7 @@
       </div>
       <div class="field-group">
         <label>Deposit paid ($)</label>
-        <input type="number" id="f-deposit" value="800" min="0" onchange="recalc()" />
+        <input type="number" id="f-deposit" value="0" min="0" onchange="recalc()" />
       </div>
     </div>
     <p class="hint" style="margin-top:10px;">Rate defaults to $400 for 4–6 players, $500 for 7+ players when loaded from SharePoint.</p>
@@ -169,7 +169,7 @@ const SITE_PATH = '/sites/TFEOperations';
 const LIST_ID = 'cf63b968-dfbe-429e-84c2-2e5a1a562b13';
 const REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
 
-const FIELDS = { expId: 'field_0', name: 'field_2', players: 'field_6', startDate: 'field_9', endDate: 'field_10', state: 'Title' };
+const FIELDS = { expId: 'field_0', name: 'field_2', players: 'field_6', startDate: 'field_9', endDate: 'field_10', state: 'Title', depositAmt: 'Deposit_x0020_Amt' };
 
 let msalInstance = null;
 let currentAccount = null;
@@ -259,6 +259,9 @@ async function loadFromSharePoint() {
     if (f[FIELDS.endDate]) document.getElementById('f-end').value = f[FIELDS.endDate].split('T')[0];
     // Auto-set rate based on player count
     document.getElementById('f-rate').value = players >= 7 ? 500 : 400;
+    // Pull deposit amount from SharePoint, fall back to $800
+    const depositAmt = parseFloat(f[FIELDS.depositAmt]) || 0;
+    document.getElementById('f-deposit').value = depositAmt;
     // Auto-populate lunch rows based on number of days
     const start = f[FIELDS.startDate] ? f[FIELDS.startDate].split('T')[0] : '';
     const end = f[FIELDS.endDate] ? f[FIELDS.endDate].split('T')[0] : '';
